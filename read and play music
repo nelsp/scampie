@@ -1,0 +1,50 @@
+from scamp import *
+from scamp_extensions.pitch import Scale, ScaleType
+from scamp_extensions.pitch import utilities
+from fractions import Fraction
+import random
+from pathlib import Path
+import os
+import matplotlib.pyplot as plt
+import json
+import pprint
+
+scale_folder = Path("C:/Users/npbrakke/scamp/scl/")
+s = Session(tempo=112)#.run_as_server()
+
+replay_list = []
+
+
+with open("saved_song.json", 'r') as json_file:
+    good_songs = json.load(json_file)
+for inst in good_songs["instruments"].keys():
+    main_scale_value = good_songs["main_scale"]
+    instrument_data = good_songs["instruments"][inst]
+    replay_list.append([main_scale_value, inst, instrument_data])
+    
+print(replay_list)
+
+reply_inst = good_songs["instruments"].keys()
+#print(reply_inst)
+#print(replay_list[0][1], replay_list[0][0], replay_list[0][2])
+
+def melody_line_play(instruments_less, curr_scale, new_song):
+    print("Playing notes from the {} scale.".format(curr_scale))
+    scale = Scale.from_scala_file(scale_folder/curr_scale, 60)
+    curr_instrument = s.new_part(instruments_less)
+    for b in range(len(new_song)):
+        for v in range(len(new_song[b])):
+            curr_instrument.play_note(scale.degree_to_pitch(new_song[b][v][0]), new_song[b][v][1], new_song[b][v][2])    
+    return None
+
+
+
+#print(high_instrument)
+#print(low_song)
+s.fork(melody_line_play, args=[replay_list[0][1], replay_list[0][0], replay_list[0][2]])
+s.fork(melody_line_play, args=[replay_list[1][1], replay_list[0][0], replay_list[1][2]])
+s.fork(melody_line_play, args=[replay_list[2][1], replay_list[0][0], replay_list[2][2]])
+s.wait_for_children_to_finish()
+
+
+
