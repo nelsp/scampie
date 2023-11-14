@@ -1,0 +1,202 @@
+from scamp import *
+from scamp_extensions.pitch import Scale, ScaleType
+from scamp_extensions.pitch import utilities
+from fractions import Fraction
+import random
+from pathlib import Path
+import os
+import matplotlib.pyplot as plt
+import json
+import pprint
+
+
+print(os.getcwd(), "xxxxxx")
+
+scale_folder = Path("C:/Users/npbrakke/scamp/scl/")
+scale_list = ["12edo.scl", "bohlen_mean.scl"]
+data_file = []
+
+scale_names_list = []
+
+
+# List all files in the directory
+for filename in os.listdir(scale_folder):
+    if os.path.isfile(os.path.join(scale_folder, filename)):
+       scale_names_list.append(filename)
+
+#print(len(scale_names_list))
+
+high_instrument = ['Flute Gold', 'E.Piano 2', 'Clarinet', 'Piccolo', 'Bright Piano', 'Soprano Sax', 'Harp LP2']
+mid_instrument = ['Violin LP3', 'E.Piano 1', 'Brass', 'French Horns', 'Marimba', 'Synth','Alto SAX', 'Oboe']
+low_instrument = ['Cello LP', 'Acoustic Bass', 'Fretless Bass', 'Fingered Bass', 'Contrabass']
+
+
+set_of_instruments_less = ['Synth Str', 'Glockenspiel', 'Strings SP1', 'Flute Gold', 'Pan Flute', 'Bright Piano', 'Piano Merlin', 'French Horns', 
+                         'Harp LP2', 'Pizzicato Strings', 'Steel', 'Alto SAX', 'Baritone Sax', 'Tenor', 'Guitar', 'Harmonica',
+                         'Viola LP', 'Soprano Sax', 'Jazz Guitar', 'Xylophone', 'Marimba', 'Synth', 'Church Organ', 'Contrabass', 'Cello LP', 'Violin LP3', 'Oboe', 'Clarinet', 
+                         'Bassoon (Rea)', 'English', 'Piano 3', 'Honky Tonk', 'E.Piano 1', 'E.Piano 2', 'Clavinet',   
+                         'Dulcimer', 'Organ 1', 'Organ 2', 'Organ 3', 'Reed Organ', 'Accordion', 'Bandoneon', 'Clean Guitar',  'Overdrive Guitar', 
+                         'DistortionGuitar', 'Acoustic Bass', 'Fingered Bass', 'Picked Bass', 'Fretless Bass', 'Slap', 'Slap Bass', 'Synth', 'Synth Bass',
+                           'Choir', 'Trumpet', 'Trombone', 'Mute Trumpet', 'Brass', 'Synth', 'Synth Brass', 'Piccolo', 
+                           'Recorder',  'Shakuhachi', 'Whistle', 'Ocarina', 'Square Wave', 'Saw Wave', 'Synth Calliope', 'Chiffer Lead', 'Charang', 'Solo Vox', 
+                           'Bass', 'Fantasia', 'Warm Pad', 'Poly Synth', 'Space Voice', 'Bowed Glass', 'Metal Pad', 'Halo Pad', 'Sweep Pad',  
+                           'Crystal', 'Atmosphere', 'Brightness',   'Sitar', 'Banjo', 'Shamisen', 'Koto',  'Bagpipe', 'Fiddle', 
+                           'Shenai', 'Coupled Harpsichord']
+
+s = Session(tempo=112)#.run_as_server()
+
+
+prob_dic = {'x': 0.9, 'y': 0.75, 'z': 0.5, 'a': 0.25, 'b': 0.2, 'c': 0.1, 'd': 0.1}
+bass_prob_dic = {'x': 0.9, 'y': 0.75, 'z': 0.25, 'a': 0.15, 'b': 0.1, 'c': 0.1, 'd': 0.1}
+prob_4_measures =['x', 'd', 'z', 'b', 'y', 'c', 'z', 'a', 'x', 'd', 'z', 'b', 'y', 'c', 'z', 'a', 'x', 'd', 'z', 'b', 'y', 'c', 'z', 'a', 'x', 'd', 'z', 'b', 'y', 'c', 'z', 'a']
+
+def generate_prob_loop(prob_dic, prob_4_measures):
+    prob_loop = []
+    for m in prob_4_measures:
+        prob_loop.append(prob_dic[m])
+    return prob_loop
+
+base_prob_loop = generate_prob_loop(prob_dic, prob_4_measures)
+bass_prob_loop = generate_prob_loop(bass_prob_dic, prob_4_measures)
+
+bass_prob = [1, 0.0, 0.0, 0.0]
+snare_prob = [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0]
+random_prob_mid = [random.uniform(0.1, 0.6) for i in range(16)]
+#arpeggio = [1, 0.7, 1, 0.7, 1, 0.7, 1, 0.7, 1, 0.7, 1, 0.7, 1, 0.7, 1, 0.7, 1, 0.7, 1, 0.7, 1, 0.7, 1, 0.7, 1, 0.7, 1, 0.7, 1, 0.7, 1, 0.7]
+random_prob_high = [random.uniform(0.15, 0.75) for i in range(32)]
+
+high_duration_list = [0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125]
+mid_duration_list = [0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25]
+mid_duration_list2 = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+low_duration_list = [1, 1, 1, 1]
+
+
+high_vol_range = [0.7, 0.75]
+mid_vol_range = [0.7, 0.75]
+low_vol_range = [0.7, 0.75]
+
+def create_midi_cc(midi_range):
+    poss_note = [x for x in range(midi_range[0],midi_range[1])]
+    return random.choice(poss_note)
+    
+    return note1
+
+def midi_volume_duration_create(prob_list, duration_list, vol_range, midi_range, number_of_loops):
+    """ arguments - 32 beat probability list,  duration list, the volume range, number of loops to create"""
+    big_list = []
+    for i in range(number_of_loops):
+        small_loop = []
+        for b in range(len(prob_list)):
+            for p in range(3):
+                notes = []
+                notes.append(create_midi_cc(midi_range))
+                dur_pick = random.choice(duration_list)
+                if random.random() <= prob_list[b]:
+                    notes.append(random.uniform(vol_range[0],vol_range[1]))
+                    notes.append(dur_pick)
+                else:
+                    notes.append(0)
+                    notes.append(dur_pick)
+                     
+            small_loop.append(notes)
+        big_list.append(small_loop)
+    return big_list
+
+
+scale_choice = random.choice([x for x in range(0,5179)])
+curr_scale = scale_names_list[scale_choice]
+scale = Scale.from_scala_file(scale_folder/curr_scale, 60)
+
+
+freq = utilities.midi_to_hertz([scale.degree_to_pitch(0), scale.degree_to_pitch(7)])
+seven_steps = freq[1]/freq[0]
+print(seven_steps)
+
+if (seven_steps < 1.6) and (seven_steps > 1.4):
+    high_midi_range = [6, 24]
+    mid_midi_range = [-12, 16]
+    low_midi_range = [-24, -16]
+elif seven_steps >= 1.6:
+    high_midi_range = [4, 14]
+    mid_midi_range = [-6, 6]
+    low_midi_range = [-16, -6]
+elif seven_steps <= 1.4:
+    high_midi_range = [20, 45]
+    mid_midi_range = [-20, 20]
+    low_midi_range = [-45, -20]
+
+
+
+high_song = midi_volume_duration_create(random_prob_high, high_duration_list,  high_vol_range, high_midi_range, 4)
+mid_song = midi_volume_duration_create(random_prob_mid, mid_duration_list,  mid_vol_range, mid_midi_range, 4)
+low_song = midi_volume_duration_create(bass_prob, low_duration_list,  low_vol_range, low_midi_range, 4)
+
+
+instru_list = []
+
+
+def melody_line(set_of_instruments_less, curr_scale, new_song):
+    choose_instr = random.choice(set_of_instruments_less)
+    instru_list.append(choose_instr)
+    curr_instrument = s.new_part(choose_instr)
+    
+    print('ci', curr_instrument)
+    print("Playing notes from the {} scale.".format(curr_scale))
+    scale = Scale.from_scala_file(scale_folder/curr_scale, 60)
+    
+    for b in range(len(new_song)):
+        for v in range(len(new_song[b])):
+            curr_instrument.play_note(scale.degree_to_pitch(new_song[b][v][0]), new_song[b][v][1], new_song[b][v][2])    
+    return None
+
+
+
+#print(high_instrument)
+#print(low_song)
+s.fork(melody_line, args=[high_instrument, curr_scale, high_song])
+s.fork(melody_line, args=[mid_instrument, curr_scale, mid_song])
+s.fork(melody_line, args=[low_instrument, curr_scale, low_song])
+s.wait_for_children_to_finish()
+
+
+
+#print(instru_list)
+saved_song ={'main_scale':curr_scale, 'instruments':{instru_list[0]: high_song, instru_list[1]: mid_song, instru_list[2]: low_song,}}
+# saved_song['main_scale']: 'instruments'
+# saved_song['main_scale']['instruments']:{instru_list[0]: high_song, instru_list[1]: mid_song, instru_list[2]: low_song,}
+
+#print(saved_song)
+json_file_song = "saved_song.json"
+
+preference = input('like 3, indifferent 2, not like 1 :  ')
+if (int(preference) < 1) or (int(preference) > 3):
+    preference = input('try again... :  ')
+else:
+    if preference == '3':
+        print('write file')
+        # Write the data to the JSON file
+        with open("saved_song.json", 'w') as json_file:
+            json.dump(saved_song, json_file, indent=4)
+
+#print(saved_song['main_scale'])
+
+# for k in saved_song['main_scale']['instruments'].keys():
+#     print(k)
+pp = pprint.PrettyPrinter(indent=4)
+
+# Pretty print the dictionary
+#pp.pprint(saved_song)
+
+
+with open("saved_song.json", 'r') as json_file:
+    good_songs = json.load(json_file)
+for inst in good_songs["instruments"].keys():
+
+    main_scale_value = good_songs["main_scale"]
+    instrument_data = good_songs["instruments"][inst]
+    print("Main Scale:", main_scale_value)
+    print(inst, instrument_data)
+
+
+print(good_songs["instruments"].keys())
+
